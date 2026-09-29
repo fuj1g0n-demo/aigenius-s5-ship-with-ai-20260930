@@ -296,6 +296,12 @@ GitHub reference:
 4. If no review appears, open **Reviewers** in the right sidebar and request **Copilot** manually.
 5. Open **Files changed** and show the inline findings.
 
+Review-specific guidance lives in `.github/skills/code-review/SKILL.md`, not
+repository-wide Copilot instructions. Copilot Code Review reads skills from the PR
+head branch; review comments may attribute a skill when it was used. Skills are
+also discoverable by other Copilot agents, so this is task-specific guidance,
+not a technical access restriction.
+
 The expected findings are:
 
 - tag-pinned Actions rather than full commit SHAs;
