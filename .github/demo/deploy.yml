@@ -1,0 +1,46 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+# NOTE (seeded issue, brief §5.2): this is over-broad for what the job needs.
+# Copilot Code Review should flag this — the hardened version scopes it to
+# `contents: read`, `pages: write`, `id-token: write`. Do not fix ahead of time.
+permissions: write-all
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      # Security gate: fails on the seeded outdated `marked` dependency (§5.1)
+      # until the Dependabot bump is merged.
+      - run: npm audit --json > audit.json || true
+      - run: node scripts/check-audit-state.mjs clean
+      # NOTE (seeded issue, brief §5.2): pinned only by floating major tag,
+      # not a full commit SHA. Copilot Code Review should flag this.
+      - uses: withastro/action@v3
+        with:
+          path: .
+          node-version: 24
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

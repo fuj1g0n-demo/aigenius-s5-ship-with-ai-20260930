@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 1
+    allow:
+      - dependency-name: "marked"
+        dependency-type: "direct"
+    labels:
+      - "dependencies"
+    # Keep the passing dependency PR open until the production gate demonstration.
+    # Agent Merge is shown on the feature PR; see PRESENTER-RUNSHEET.md Beats 2 and 4.

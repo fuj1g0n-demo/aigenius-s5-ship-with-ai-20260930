@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+---
+<Layout title="The Pipeline">
+  <h1>The pipeline</h1>
+  <p>
+    Every change to this site — including the one that shipped it live — moves through the same
+    AI-assisted path from idea to production:
+  </p>
+  <div class="pipeline-flow">
+    <span class="pipeline-step">Issue</span>
+    <span class="pipeline-arrow">→</span>
+    <span class="pipeline-step">Copilot drafts a PR</span>
+    <span class="pipeline-arrow">→</span>
+    <span class="pipeline-step">Copilot Code Review</span>
+    <span class="pipeline-arrow">→</span>
+    <span class="pipeline-step">Agent Merge</span>
+    <span class="pipeline-arrow">→</span>
+    <span class="pipeline-step">GitHub Actions</span>
+    <span class="pipeline-arrow">→</span>
+    <span class="pipeline-step">GitHub Pages</span>
+  </div>
+  <style>
+    .pipeline-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 1.5rem 0;
+    }
+    .pipeline-step {
+      border: 1px solid rgba(79, 209, 201, 0.4);
+      background: rgba(79, 209, 201, 0.06);
+      border-radius: 8px;
+      padding: 0.55rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--fg);
+    }
+    .pipeline-arrow { color: var(--teal); font-size: 1.1rem; }
+  </style>
+  <p>The loop repeats automatically on every future change. Five capabilities carry it:</p>
+  <ol>
+    <li><a href={`${base}capabilities/copilot-code-review/`}>Copilot Code Review</a> — an AI reviewer on every pull request</li>
+    <li><a href={`${base}capabilities/agent-merge/`}>Agent Merge</a> — remediates findings and merges when checks are green</li>
+    <li><a href={`${base}capabilities/github-actions/`}>GitHub Actions (CI/CD)</a> — builds, gates, and deploys</li>
+    <li><a href={`${base}capabilities/security-review/`}>AI-assisted security review</a> — the supply-chain layer: dependencies, secrets, tokens</li>
+    <li><a href={`${base}capabilities/lifecycle-automation/`}>End-to-end lifecycle automation</a> — the whole loop, running on every change</li>
+  </ol>
+  <p>
+    See <a href={`${base}secure-supply-chain/`}>Secure your supply chain</a> for why the
+    security beats in this demo live in dependencies and CI/CD, not just application code.
+  </p>
+</Layout>
