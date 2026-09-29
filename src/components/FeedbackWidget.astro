@@ -2,25 +2,29 @@
 // Feedback / questions widget — the one interactive, code-bearing feature
 // on the site. Client-side only (works on static GitHub Pages, no backend).
 //
-// Carries two intentionally seeded issues for the live demo — do not fix:
+// Carries an intentionally seeded issue for the live demo — do not fix:
 //   - §5.1: renders submissions with `marked` 0.3.19, which has known
 //     regular-expression denial-of-service vulnerabilities. Flagged by Dependabot.
-//   - §5.5: the submit handler (src/lib/feedback.js) has no input validation.
-//     Flagged by Copilot Code Review.
+import { FEEDBACK_LIMITS } from '../lib/feedback.js';
 ---
 <section class="card" id="feedback-widget">
   <h2>Questions &amp; feedback</h2>
   <p>Leave a question or comment about this session — it renders below, right in your browser.</p>
   <form id="feedback-form">
     <div class="field">
-      <label for="feedback-name">Name</label>
-      <input id="feedback-name" name="name" type="text" placeholder="Ada" />
+      <label for="feedback-name">Name (optional, up to {FEEDBACK_LIMITS.name} characters)</label>
+      <input id="feedback-name" name="name" type="text" maxlength={FEEDBACK_LIMITS.name} placeholder="Ada" />
     </div>
     <div class="field">
-      <label for="feedback-message">Message (Markdown supported)</label>
-      <textarea id="feedback-message" name="message" rows="3" placeholder="What did you think?"></textarea>
+      <label for="feedback-topic">Topic (required, up to {FEEDBACK_LIMITS.topic} characters)</label>
+      <input id="feedback-topic" name="topic" type="text" required maxlength={FEEDBACK_LIMITS.topic} placeholder="Supply chain security" />
+    </div>
+    <div class="field">
+      <label for="feedback-message">Message (required, up to {FEEDBACK_LIMITS.message} characters; Markdown supported)</label>
+      <textarea id="feedback-message" name="message" rows="3" required maxlength={FEEDBACK_LIMITS.message} placeholder="What did you think?"></textarea>
     </div>
     <button type="submit">Submit</button>
+    <p id="feedback-error" role="alert" hidden></p>
   </form>
   <div id="feedback-list" aria-live="polite"></div>
 </section>
@@ -71,12 +75,20 @@
   const renderMarkdown =
     Reflect.get(markedModule, 'marked') ?? Reflect.get(markedModule, 'default');
 
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (character) => {
+      const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return entities[character];
+    });
+  }
+
   // Demo-only: would normally authenticate a feedback-analytics beacon.
   // FEEDBACK_ANALYTICS_TOKEN is a fake placeholder — see analytics-config.js.
   console.debug('feedback widget ready', FEEDBACK_ANALYTICS_TOKEN.slice(0, 4));
 
   const form = document.getElementById('feedback-form');
   const list = document.getElementById('feedback-list');
+  const errorMessage = document.getElementById('feedback-error');
 
   function render() {
     const submissions = loadSubmissions();
@@ -86,8 +98,9 @@
       .map((s) => {
         const html = renderMarkdown(s.message || '');
         const who = s.name || 'Anonymous';
+        const topic = s.topic ? ` · Topic: ${escapeHtml(s.topic)}` : '';
         const when = new Date(s.submittedAt).toLocaleString();
-        return `<div class="feedback-item"><div class="meta">${who} · ${when}</div>${html}</div>`;
+        return `<div class="feedback-item"><div class="meta">${who}${topic} · ${when}</div>${html}</div>`;
       })
       .join('');
   }
@@ -96,8 +109,20 @@
     event.preventDefault();
     const data = new FormData(form);
     const name = data.get('name');
+    const topic = data.get('topic');
     const message = data.get('message');
-    saveSubmission(name, message);
+    errorMessage.hidden = true;
+    errorMessage.textContent = '';
+    try {
+      saveSubmission(name, message, topic);
+    } catch (error) {
+      console.error('Unable to save feedback', error);
+      errorMessage.textContent = `Unable to save feedback. ${
+        error instanceof Error ? error.message : 'Please try again.'
+      }`;
+      errorMessage.hidden = false;
+      return;
+    }
     form.reset();
     render();
   });

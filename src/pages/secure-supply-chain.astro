@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import FeedbackWidget from '../components/FeedbackWidget.astro';
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
 ---
 <Layout title="Secure Your Supply Chain">
@@ -29,4 +30,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     and a little care in how you write workflow YAML. See
     <a href={`${base}diy/`}>Follow the demonstration</a> for the complete lifecycle.
   </p>
+  <p>
+    Episode 3 takeaway: protect the whole path from source to production, not only the packages in
+    your application.
+  </p>
+  <FeedbackWidget />
 </Layout>
