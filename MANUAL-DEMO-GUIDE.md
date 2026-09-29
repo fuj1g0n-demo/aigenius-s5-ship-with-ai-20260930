@@ -70,6 +70,10 @@ Do not run `npm audit fix`, update dependencies, or copy `.github/demo/deploy.ym
 state is intentionally vulnerable.
 
 **Expected result:** installation completes and reports the deliberate `marked` finding.
+Other info, low, or moderate advisories, including transitive dependencies, may coexist. The
+feature-PR audit gate allows only the configured high-severity start findings and rejects any
+unexpected high or critical finding; after remediation and in production, high and critical
+findings must be absent.
 
 ## 4. Configure the disposable repository
 
@@ -291,6 +295,12 @@ GitHub reference:
 3. Wait for the automatic Copilot review.
 4. If no review appears, open **Reviewers** in the right sidebar and request **Copilot** manually.
 5. Open **Files changed** and show the inline findings.
+
+Review-specific guidance lives in `.github/skills/code-review/SKILL.md`, not
+repository-wide Copilot instructions. Copilot Code Review reads skills from the PR
+head branch; review comments may attribute a skill when it was used. Skills are
+also discoverable by other Copilot agents, so this is task-specific guidance,
+not a technical access restriction.
 
 The expected findings are:
 

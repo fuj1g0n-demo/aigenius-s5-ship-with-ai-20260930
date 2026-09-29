@@ -121,22 +121,47 @@ test('audit CLI preserves the demo sequence and allows clean follow-up PRs', asy
     vulnerabilities: {},
     metadata: { vulnerabilities: { high: 0, critical: 0 } },
   };
-  const unexpected = structuredClone(seeded);
-  unexpected.vulnerabilities.other = { severity: 'high' };
-  unexpected.metadata.vulnerabilities.high = 2;
+  const withFinding = (report, name, severity) => {
+    const result = structuredClone(report);
+    result.vulnerabilities[name] = { severity };
+    if (severity === 'high' || severity === 'critical') {
+      result.metadata.vulnerabilities[severity] += 1;
+    }
+    return result;
+  };
   const cases = [
     ['seeded feature PR', 'auto', '0.3.19', seeded, true],
     ['explicit start state', 'start', '0.3.19', seeded, true],
+    ...['info', 'low', 'moderate'].flatMap((severity) => [
+      [`seeded with ${severity} transitive advisory`, 'auto', '0.3.19',
+        withFinding(seeded, `seeded-transitive-${severity}`, severity), true],
+      [`clean with ${severity} transitive advisory`, 'clean', '4.0.10',
+        withFinding(clean, `clean-transitive-${severity}`, severity), true],
+    ]),
     ['unremediated Dependabot PR', 'clean', '0.3.19', seeded, false],
     ['production blocks seed', 'clean', '0.3.19', seeded, false],
     ['remediated Dependabot PR', 'clean', '4.0.10', clean, true],
     ['follow-up feature PR', 'auto', '4.0.10', clean, true],
-    ['unexpected start finding', 'auto', '0.3.19', unexpected, false],
+    ['unexpected high in start state', 'auto', '0.3.19', withFinding(seeded, 'other', 'high'), false],
+    ['unexpected critical in start state', 'auto', '0.3.19', withFinding(seeded, 'other', 'critical'), false],
+    ['unexpected high in clean state', 'clean', '4.0.10', withFinding(clean, 'other', 'high'), false],
+    ['unexpected critical in clean state', 'clean', '4.0.10', withFinding(clean, 'other', 'critical'), false],
+    ['high omitted from start metadata', 'auto', '0.3.19',
+      { ...seeded, metadata: clean.metadata }, false],
+    ['high omitted from clean metadata', 'clean', '4.0.10',
+      { ...clean, vulnerabilities: seeded.vulnerabilities }, false],
+    ['critical omitted from metadata', 'auto', '0.3.19',
+      { ...seeded, vulnerabilities: withFinding(seeded, 'other', 'critical').vulnerabilities }, false],
+    ['unexpected high with stale metadata', 'auto', '0.3.19',
+      { ...seeded, vulnerabilities: withFinding(seeded, 'other', 'high').vulnerabilities }, false],
     ['unsafe version with clean report', 'auto', '1.0.0', clean, false],
     ['missing dependency', 'auto', undefined, clean, false],
     ['remaining high vulnerability', 'auto', '4.0.10', seeded, false],
     ['failed npm audit', 'auto', '4.0.10', { error: { code: 'ENETUNREACH' } }, false],
     ['missing audit metadata', 'auto', '4.0.10', {}, false],
+    ['missing findings', 'auto', '4.0.10', { metadata: clean.metadata }, false],
+    ['malformed finding', 'auto', '4.0.10',
+      { ...clean, vulnerabilities: { other: {} } }, false],
     ['invalid mode', 'invalid', '4.0.10', clean, false],
   ];
   for (const [name, mode, version, report, passes] of cases) {

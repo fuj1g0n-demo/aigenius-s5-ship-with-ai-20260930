@@ -83,9 +83,11 @@ and `audit` checks from GitHub Actions, with zero required human approvals. It a
 default-branch deletion and force pushes, with no bypass actors. Template settings and rulesets
 are not assumed to carry over.
 
-The `audit` check runs on every PR to `main`. It permits only the intended vulnerable start state
-while `marked` remains at its seeded version; Dependabot updates and PRs after remediation must
-pass the clean-state policy. Production deployment always requires the clean state.
+The `audit` check runs on every PR to `main`. While `marked` remains at its seeded version,
+feature PRs permit only the configured high-severity start findings; unrelated info, low, or
+moderate advisories do not block them. Unexpected high or critical findings still fail.
+Dependabot updates and PRs after remediation must pass the clean-state policy, which requires
+no high or critical findings and a safe `marked` version. Production always requires the clean state.
 
 Auto-merge must still be enabled per non-draft PR; it does not opt in every PR automatically.
 If checks have already passed, immediate merge is normal. See
