@@ -70,6 +70,10 @@ Do not run `npm audit fix`, update dependencies, or copy `.github/demo/deploy.ym
 state is intentionally vulnerable.
 
 **Expected result:** installation completes and reports the deliberate `marked` finding.
+Other info, low, or moderate advisories, including transitive dependencies, may coexist. The
+feature-PR audit gate allows only the configured high-severity start findings and rejects any
+unexpected high or critical finding; after remediation and in production, high and critical
+findings must be absent.
 
 ## 4. Configure the disposable repository
 
