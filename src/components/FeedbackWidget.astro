@@ -17,6 +17,10 @@
       <input id="feedback-name" name="name" type="text" placeholder="Ada" />
     </div>
     <div class="field">
+      <label for="feedback-topic">Topic</label>
+      <input id="feedback-topic" name="topic" type="text" placeholder="Supply chain security" />
+    </div>
+    <div class="field">
       <label for="feedback-message">Message (Markdown supported)</label>
       <textarea id="feedback-message" name="message" rows="3" placeholder="What did you think?"></textarea>
     </div>
@@ -71,6 +75,13 @@
   const renderMarkdown =
     Reflect.get(markedModule, 'marked') ?? Reflect.get(markedModule, 'default');
 
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (character) => {
+      const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return entities[character];
+    });
+  }
+
   // Demo-only: would normally authenticate a feedback-analytics beacon.
   // FEEDBACK_ANALYTICS_TOKEN is a fake placeholder — see analytics-config.js.
   console.debug('feedback widget ready', FEEDBACK_ANALYTICS_TOKEN.slice(0, 4));
@@ -86,8 +97,9 @@
       .map((s) => {
         const html = renderMarkdown(s.message || '');
         const who = s.name || 'Anonymous';
+        const topic = s.topic ? ` · Topic: ${escapeHtml(s.topic)}` : '';
         const when = new Date(s.submittedAt).toLocaleString();
-        return `<div class="feedback-item"><div class="meta">${who} · ${when}</div>${html}</div>`;
+        return `<div class="feedback-item"><div class="meta">${who}${topic} · ${when}</div>${html}</div>`;
       })
       .join('');
   }
@@ -96,8 +108,9 @@
     event.preventDefault();
     const data = new FormData(form);
     const name = data.get('name');
+    const topic = data.get('topic');
     const message = data.get('message');
-    saveSubmission(name, message);
+    saveSubmission(name, message, topic);
     form.reset();
     render();
   });

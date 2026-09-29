@@ -16,9 +16,9 @@ export function loadSubmissions() {
   }
 }
 
-export function saveSubmission(name, message) {
+export function saveSubmission(name, message, topic) {
   const submissions = loadSubmissions();
-  submissions.push({ name, message, submittedAt: new Date().toISOString() });
+  submissions.push({ name, message, topic, submittedAt: new Date().toISOString() });
   localStorage.setItem(STORAGE_KEY, JSON.stringify(submissions));
   return submissions;
 }
